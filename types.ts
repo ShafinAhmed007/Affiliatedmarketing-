@@ -10,7 +10,7 @@ export interface Product {
   category: string;
   rating: number; // 0 to 5
   reviewCount: number;
-  logoUrl: string; // Placeholder capable
+  logoUrl: string;
   shortDescription: string;
   fullDescription: string;
   pros: string[];
@@ -19,6 +19,14 @@ export interface Product {
   verdict: string;
   affiliateLink: string;
   bestFor: string;
+}
+
+export interface SiteConfig {
+  siteTitle: string;
+  heroHeadline: string;
+  heroSubheadline: string;
+  contactEmail: string;
+  isVerificationMode: boolean;
 }
 
 export type LegalPageType = 'privacy' | 'terms' | 'disclosure';

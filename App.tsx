@@ -8,10 +8,11 @@ import ProductCard from './components/ProductCard';
 import ReviewDetail from './components/ReviewDetail';
 import LegalPage from './components/LegalPage';
 import PersonalSector from './components/PersonalSector';
+import CheckoutModal from './components/CheckoutModal';
 import { products as initialProducts } from './services/data';
-import { Product } from './types';
+import { Product, SiteConfig } from './types';
+import { Crown, Check, Zap } from 'lucide-react';
 
-// Scroll to top wrapper
 const ScrollToTop = () => {
   const { pathname } = useLocation();
   useEffect(() => {
@@ -20,17 +21,24 @@ const ScrollToTop = () => {
   return null;
 };
 
-const HomePage: React.FC<{ products: Product[] }> = ({ products }) => {
+const HomePage: React.FC<{ products: Product[]; config: SiteConfig }> = ({ products, config }) => {
+  const [checkoutData, setCheckoutData] = useState<{ isOpen: boolean; plan: string; price: string }>({
+    isOpen: false,
+    plan: '',
+    price: ''
+  });
+
   return (
     <>
-      <Hero />
+      <Hero config={config} />
       <TrustBar />
+      
+      {/* Product Feed */}
       <section className="py-16 px-4 max-w-7xl mx-auto" id="reviews">
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold text-slate-900 mb-4">Top Trending Digital Tools</h2>
           <p className="text-lg text-slate-600 max-w-2xl mx-auto">
-            Our editorial team independently tests and reviews the best software on the market. 
-            Compare features, pricing, and performance to make data-driven decisions.
+            Our editorial team independently tests and reviews the best software on the market.
           </p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -39,47 +47,106 @@ const HomePage: React.FC<{ products: Product[] }> = ({ products }) => {
           ))}
         </div>
       </section>
-      
-      <section className="bg-white py-16 px-4 border-y border-slate-200">
-        <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-2xl font-bold text-slate-900 mb-6">Why Trust ProDigital Reviews?</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
-            <div className="p-4">
-              <div className="bg-blue-100 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4 text-blue-600 font-bold text-xl">
-                1
-              </div>
-              <h3 className="font-semibold text-lg mb-2">Independent Testing</h3>
-              <p className="text-slate-600 text-sm">We buy our own subscriptions to test features authentically.</p>
+
+      {/* Pricing / Premium Section */}
+      <section className="bg-slate-900 py-24 px-4 overflow-hidden relative">
+        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500"></div>
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-white mb-4 flex items-center justify-center gap-3">
+              <Crown className="text-yellow-400 w-10 h-10" /> Upgrade to Premium
+            </h2>
+            <p className="text-slate-400 text-lg">Get exclusive insights, early deals, and expert software consultation.</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+            <div className="bg-slate-800/50 border border-slate-700 p-8 rounded-2xl">
+              <h3 className="text-xl font-bold text-white mb-2">Basic</h3>
+              <div className="text-3xl font-bold text-white mb-6">Free</div>
+              <ul className="space-y-4 mb-8">
+                {['Public Reviews', 'Basic Comparisons', 'Weekly Newsletter'].map((f) => (
+                  <li key={f} className="flex items-center gap-2 text-slate-400 text-sm">
+                    <Check className="w-4 h-4 text-green-500" /> {f}
+                  </li>
+                ))}
+              </ul>
+              <button className="w-full py-3 rounded-xl border border-slate-600 text-white font-semibold hover:bg-slate-700 transition-colors">Current Plan</button>
             </div>
-            <div className="p-4">
-              <div className="bg-blue-100 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4 text-blue-600 font-bold text-xl">
-                2
-              </div>
-              <h3 className="font-semibold text-lg mb-2">Data-Driven Ratings</h3>
-              <p className="text-slate-600 text-sm">Our scores are based on uptime, speed, and real usability metrics.</p>
+
+            <div className="bg-white p-8 rounded-2xl shadow-2xl transform scale-105 border-2 border-brand-blue relative">
+              <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-brand-blue text-white px-4 py-1 rounded-full text-xs font-bold uppercase tracking-widest">Most Popular</div>
+              <h3 className="text-xl font-bold text-slate-900 mb-2">Pro Member</h3>
+              <div className="text-3xl font-bold text-slate-900 mb-6">৳৫৯৯<span className="text-sm font-normal text-slate-500">/month</span></div>
+              <ul className="space-y-4 mb-8">
+                {['Detailed Pricing Data', 'Early Access to Deals', 'Premium Discord Community', 'Ad-free Experience'].map((f) => (
+                  <li key={f} className="flex items-center gap-2 text-slate-700 text-sm">
+                    <Check className="w-4 h-4 text-brand-blue" /> {f}
+                  </li>
+                ))}
+              </ul>
+              <button 
+                onClick={() => setCheckoutData({ isOpen: true, plan: 'Pro Member', price: '৳৫৯৯/mo' })}
+                className="w-full py-3 rounded-xl bg-brand-blue text-white font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-200"
+              >
+                Join Pro Now
+              </button>
             </div>
-            <div className="p-4">
-              <div className="bg-blue-100 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4 text-blue-600 font-bold text-xl">
-                3
-              </div>
-              <h3 className="font-semibold text-lg mb-2">Transparent Disclosure</h3>
-              <p className="text-slate-600 text-sm">We are upfront about how we make money. No hidden agendas.</p>
+
+            <div className="bg-slate-800/50 border border-slate-700 p-8 rounded-2xl">
+              <h3 className="text-xl font-bold text-white mb-2">Elite Business</h3>
+              <div className="text-3xl font-bold text-white mb-6">৳১,৯৯৯<span className="text-sm font-normal text-slate-500">/year</span></div>
+              <ul className="space-y-4 mb-8">
+                {['1-on-1 Strategy Call', 'Custom Tool Audits', 'API Access', 'All Pro Features'].map((f) => (
+                  <li key={f} className="flex items-center gap-2 text-slate-400 text-sm">
+                    <Check className="w-4 h-4 text-blue-400" /> {f}
+                  </li>
+                ))}
+              </ul>
+              <button 
+                onClick={() => setCheckoutData({ isOpen: true, plan: 'Elite Business', price: '৳১,৯৯৯/yr' })}
+                className="w-full py-3 rounded-xl border border-slate-600 text-white font-semibold hover:bg-slate-700 transition-colors"
+              >
+                Get Elite Access
+              </button>
             </div>
+          </div>
+          
+          <div className="mt-16 flex justify-center items-center gap-8 opacity-50 grayscale contrast-125">
+             <div className="text-white font-bold text-xl italic">bKash</div>
+             <div className="text-white font-bold text-xl italic">Nagad</div>
+             <div className="text-white font-bold text-xl italic">Rocket</div>
+             <div className="text-white font-bold text-xl italic">VISA</div>
           </div>
         </div>
       </section>
+
+      <CheckoutModal 
+        isOpen={checkoutData.isOpen} 
+        onClose={() => setCheckoutData({ ...checkoutData, isOpen: false })}
+        planName={checkoutData.plan}
+        price={checkoutData.price}
+      />
     </>
   );
 };
 
 const App: React.FC = () => {
-  // Global State for Products (allows AI to modify them)
   const [products, setProducts] = useState<Product[]>(() => {
     const saved = localStorage.getItem('pdr_products');
     return saved ? JSON.parse(saved) : initialProducts;
   });
 
-  // Global State for API Keys
+  const [siteConfig, setSiteConfig] = useState<SiteConfig>(() => {
+    const saved = localStorage.getItem('pdr_site_config');
+    return saved ? JSON.parse(saved) : {
+      siteTitle: "ProDigital Reviews",
+      heroHeadline: "Build Your Stack with Confidence.",
+      heroSubheadline: "আমরা হাজার হাজার ডিজিটাল টুলস পরীক্ষা করে আপনার জন্য সেরাটি খুঁজে বের করি।",
+      contactEmail: "contact@prodigitalreviews.com",
+      isVerificationMode: false
+    };
+  });
+
   const [apiKeys, setApiKeys] = useState<string[]>(() => {
     const saved = localStorage.getItem('pdr_api_keys');
     return saved ? JSON.parse(saved) : ['', '', '', '', ''];
@@ -87,7 +154,8 @@ const App: React.FC = () => {
 
   useEffect(() => {
     localStorage.setItem('pdr_products', JSON.stringify(products));
-  }, [products]);
+    localStorage.setItem('pdr_site_config', JSON.stringify(siteConfig));
+  }, [products, siteConfig]);
 
   useEffect(() => {
     localStorage.setItem('pdr_api_keys', JSON.stringify(apiKeys));
@@ -97,16 +165,14 @@ const App: React.FC = () => {
     <HashRouter>
       <ScrollToTop />
       <div className="min-h-screen flex flex-col font-sans bg-brand-bg text-brand-dark">
-        <Navbar />
+        <Navbar config={siteConfig} />
         <main className="flex-grow">
           <Routes>
-            <Route path="/" element={<HomePage products={products} />} />
+            <Route path="/" element={<HomePage products={products} config={siteConfig} />} />
             <Route path="/review/:id" element={<ReviewDetail products={products} />} />
             <Route path="/privacy" element={<LegalPage type="privacy" />} />
             <Route path="/terms" element={<LegalPage type="terms" />} />
             <Route path="/disclosure" element={<LegalPage type="disclosure" />} />
-            
-            {/* New AI Personal Sector */}
             <Route 
               path="/personal-sector" 
               element={
@@ -115,12 +181,14 @@ const App: React.FC = () => {
                   setProducts={setProducts} 
                   apiKeys={apiKeys}
                   setApiKeys={setApiKeys}
+                  siteConfig={siteConfig}
+                  setSiteConfig={setSiteConfig}
                 />
               } 
             />
           </Routes>
         </main>
-        <Footer />
+        <Footer config={siteConfig} />
       </div>
     </HashRouter>
   );

@@ -1,11 +1,15 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, CheckCircle2, ShieldCheck } from 'lucide-react';
+import { SiteConfig } from '../types';
 
-const Hero: React.FC = () => {
+interface HeroProps {
+  config: SiteConfig;
+}
+
+const Hero: React.FC<HeroProps> = ({ config }) => {
   return (
     <div className="relative bg-white pt-16 pb-16 lg:pt-24 lg:pb-32 overflow-hidden">
-      {/* Dynamic Background Pattern */}
       <div className="absolute inset-0 z-0 opacity-40">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-gradient-to-r from-blue-50 to-indigo-50 rounded-full blur-3xl"></div>
       </div>
@@ -17,14 +21,13 @@ const Hero: React.FC = () => {
             <span>Independent & 100% Honest Reviews</span>
           </div>
 
-          <h1 className="text-5xl md:text-6xl lg:text-7xl font-black text-slate-900 tracking-tight mb-8">
-            Build Your Stack with <br className="hidden md:block" />
+          <h1 className="text-5xl md:text-6xl lg:text-7xl font-black text-slate-900 tracking-tight mb-8 whitespace-pre-line">
+            {config.heroHeadline.split(' Confidence.')[0]} <br className="hidden md:block" />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-blue to-indigo-600">Confidence.</span>
           </h1>
 
           <p className="max-w-3xl mx-auto text-xl text-slate-600 mb-12 leading-relaxed">
-            আমরা হাজার হাজার ডিজিটাল টুলস পরীক্ষা করে আপনার জন্য সেরাটি খুঁজে বের করি। 
-            ভুল টুল বেছে নিয়ে সময় ও টাকা নষ্ট করা বন্ধ করুন।
+            {config.heroSubheadline}
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
