@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Menu, X, ShieldCheck, Lock, Crown } from 'lucide-react';
 import { SiteConfig } from '../types';
 
@@ -9,6 +9,23 @@ interface NavbarProps {
 
 const Navbar: React.FC<NavbarProps> = ({ config }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const handleReviewsClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (location.pathname !== '/') {
+      navigate('/');
+      setTimeout(() => {
+        const element = document.getElementById('reviews');
+        if (element) element.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
+    } else {
+      const element = document.getElementById('reviews');
+      if (element) element.scrollIntoView({ behavior: 'smooth' });
+    }
+    setIsOpen(false);
+  };
 
   return (
     <nav className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-200 shadow-sm">
@@ -25,7 +42,7 @@ const Navbar: React.FC<NavbarProps> = ({ config }) => {
 
           <div className="hidden md:flex space-x-6 items-center">
             <Link to="/" className="text-slate-600 hover:text-brand-blue font-medium transition-colors">Home</Link>
-            <a href="/#reviews" className="text-slate-600 hover:text-brand-blue font-medium transition-colors">Reviews</a>
+            <button onClick={handleReviewsClick} className="text-slate-600 hover:text-brand-blue font-medium transition-colors bg-transparent border-none cursor-pointer">Reviews</button>
             <Link to="/disclosure" className="text-slate-600 hover:text-brand-blue font-medium transition-colors">Transparency</Link>
             <div className="w-px h-6 bg-slate-200 mx-2"></div>
             <Link to="/personal-sector" className="text-slate-400 hover:text-brand-dark flex items-center gap-1 font-medium transition-colors text-sm">
@@ -49,6 +66,7 @@ const Navbar: React.FC<NavbarProps> = ({ config }) => {
         <div className="md:hidden bg-white border-b border-slate-200">
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
             <Link to="/" onClick={() => setIsOpen(false)} className="block px-3 py-2 text-base font-medium text-slate-700 hover:text-brand-blue hover:bg-slate-50 rounded-md">Home</Link>
+            <button onClick={handleReviewsClick} className="block w-full text-left px-3 py-2 text-base font-medium text-slate-700 hover:text-brand-blue hover:bg-slate-50 rounded-md">Reviews</button>
             <Link to="/personal-sector" onClick={() => setIsOpen(false)} className="block px-3 py-2 text-base font-medium text-slate-700 hover:text-brand-blue hover:bg-slate-50 rounded-md">Admin Panel</Link>
             <div className="p-3">
               <button className="w-full flex items-center justify-center gap-2 bg-slate-900 text-white py-3 rounded-xl font-bold">

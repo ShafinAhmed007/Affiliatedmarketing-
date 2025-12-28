@@ -8,6 +8,14 @@ interface HeroProps {
 }
 
 const Hero: React.FC<HeroProps> = ({ config }) => {
+  const scrollToReviews = (e: React.MouseEvent) => {
+    e.preventDefault();
+    const element = document.getElementById('reviews');
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   return (
     <div className="relative bg-white pt-16 pb-16 lg:pt-24 lg:pb-32 overflow-hidden">
       <div className="absolute inset-0 z-0 opacity-40">
@@ -31,13 +39,13 @@ const Hero: React.FC<HeroProps> = ({ config }) => {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
-            <a 
-              href="#reviews" 
+            <button 
+              onClick={scrollToReviews}
               className="w-full sm:w-auto inline-flex items-center justify-center px-10 py-4 text-lg font-bold rounded-xl text-white bg-brand-blue hover:bg-blue-700 shadow-[0_10px_20px_-5px_rgba(37,99,235,0.3)] hover:shadow-[0_15px_25px_-5px_rgba(37,99,235,0.4)] transition-all transform hover:-translate-y-1"
             >
               Explore Top Deals
               <ArrowRight className="ml-2 h-5 w-5" />
-            </a>
+            </button>
             <Link 
               to="/disclosure" 
               className="w-full sm:w-auto inline-flex items-center justify-center px-10 py-4 border-2 border-slate-200 text-lg font-bold rounded-xl text-slate-700 bg-white hover:bg-slate-50 hover:border-slate-300 transition-all"

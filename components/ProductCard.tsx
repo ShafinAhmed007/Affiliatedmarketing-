@@ -12,11 +12,17 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
     <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden hover:shadow-md transition-shadow flex flex-col h-full">
       <div className="p-6 flex-grow">
         <div className="flex items-start justify-between mb-4">
-          <img 
-            src={product.logoUrl} 
-            alt={`${product.name} Logo`} 
-            className="w-16 h-16 rounded-lg object-cover bg-slate-50 border border-slate-100"
-          />
+          <div className="w-16 h-16 rounded-lg bg-white border border-slate-100 flex items-center justify-center p-2 overflow-hidden">
+            <img 
+              src={product.logoUrl} 
+              alt={`${product.name} Logo`} 
+              className="max-w-full max-h-full object-contain"
+              onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                target.src = 'https://via.placeholder.com/64?text=' + product.name;
+              }}
+            />
+          </div>
           <div className="flex flex-col items-end">
             <div className="flex items-center gap-1 bg-green-50 px-2 py-1 rounded text-green-700 font-bold text-sm">
               <Star className="w-4 h-4 fill-current" />

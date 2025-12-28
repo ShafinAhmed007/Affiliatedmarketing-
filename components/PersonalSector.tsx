@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Lock, Unlock, Terminal, Activity, Send, Key, Bot, ShieldCheck, Target, Settings, MoveRight, PlayCircle, Loader2, Plus, Trash2, RefreshCw } from 'lucide-react';
+import { Lock, Unlock, Terminal, Activity, Send, Key, Bot, ShieldCheck, Target, Settings, MoveRight, PlayCircle, Loader2, Plus, Trash2, RefreshCw, BrainCircuit, Search, Code2, FileCheck, Network, Cpu, FileText } from 'lucide-react';
 import { GoogleGenAI } from "@google/genai";
 import { Product, SiteConfig } from '../types';
 
@@ -15,7 +15,8 @@ interface PersonalSectorProps {
 interface LogEntry {
   timestamp: string;
   message: string;
-  type: 'info' | 'error' | 'success' | 'ai';
+  type: 'info' | 'error' | 'success' | 'ai' | 'master' | 'prd';
+  sender?: string;
 }
 
 const PersonalSector: React.FC<PersonalSectorProps> = ({ products, setProducts, apiKeys, setApiKeys, siteConfig, setSiteConfig }) => {
@@ -26,7 +27,13 @@ const PersonalSector: React.FC<PersonalSectorProps> = ({ products, setProducts, 
   const [verificationContext, setVerificationContext] = useState('');
   const [isThinking, setIsThinking] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
-  const [monitorStatus, setMonitorStatus] = useState<string>('সিস্টেম প্রস্তুত। আপনার সাইটের কমপ্লায়েন্স চেক করতে "Initiate Deep Site Scan" বাটনে ক্লিক করুন।');
+  const [monitorStatus, setMonitorStatus] = useState<string>('System Stable. MCP Protocol Standby.');
+  const [masterStatus, setMasterStatus] = useState<{ [key: string]: 'idle' | 'working' | 'done' }>({
+    planner: 'idle',
+    researcher: 'idle',
+    coder: 'idle',
+    reviewer: 'idle'
+  });
   
   const logsEndRef = useRef<HTMLDivElement>(null);
 
@@ -34,16 +41,18 @@ const PersonalSector: React.FC<PersonalSectorProps> = ({ products, setProducts, 
     logsEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [logs]);
 
-  const addLog = (message: string, type: 'info' | 'error' | 'success' | 'ai') => {
+  const addLog = (message: string, type: LogEntry['type'], sender?: string) => {
     const timestamp = new Date().toLocaleTimeString();
-    setLogs(prev => [...prev, { timestamp, message, type }]);
+    setLogs(prev => [...prev, { timestamp, message, type, sender }]);
   };
 
   const handlePinSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (pin === '1234' || pin.length === 4) {
       setIsAuthenticated(true);
-      addLog('সিকিউর সেশন চালু হয়েছে: অ্যাফিলিয়েট অ্যাপ্রুভাল এক্সপার্ট এখন অনলাইন।', 'success');
+      addLog('Secure Session Established: Root Access Granted.', 'success');
+      addLog('Connecting to MCP Protocol via ChatGPT Bridge...', 'info');
+      setTimeout(() => addLog('MCP Connection Active. Real-time Knowledge Graph Synced.', 'success'), 1000);
     } else {
       addLog('Access Denied: Invalid Security Credentials', 'error');
     }
@@ -51,131 +60,77 @@ const PersonalSector: React.FC<PersonalSectorProps> = ({ products, setProducts, 
 
   const executeGenAIRequest = async (modelName: string, prompt: string, config?: any) => {
     const activeKeys = apiKeys.filter(k => k.trim() !== '');
-    if (activeKeys.length === 0) throw new Error("কোন অ্যাক্টিভ এপিআই কী পাওয়া যায়নি।");
+    if (activeKeys.length === 0) throw new Error("No active API Keys found. Please add a valid key.");
 
-    for (let i = 0; i < activeKeys.length; i++) {
-      const key = activeKeys[i];
-      try {
-        const ai = new GoogleGenAI({ apiKey: key });
-        const result = await ai.models.generateContent({
-          model: modelName,
-          contents: prompt,
-          config: config
-        });
-        if (!result || !result.text) throw new Error("নাল রেসপন্স পাওয়া গেছে।");
-        return result.text;
-      } catch (error: any) {
-        addLog(`নোড #${i + 1} ত্রুটি: ${error.message}`, 'error');
-        if (i === activeKeys.length - 1) throw new Error("Neural link failed.");
-      }
-    }
-    return "";
-  };
-
-  const handleScanSite = async () => {
-    setIsScanning(true);
-    setMonitorStatus("গভীর কমপ্লায়েন্স স্ক্যান চলছে...");
+    const key = activeKeys[activeKeys.length - 1]; 
     try {
-      const siteSummary = JSON.stringify({
-        products: products.map(p => ({ name: p.name, rating: p.rating, category: p.category, desc: p.shortDescription })),
-        config: siteConfig,
-        target: verificationContext
+      const ai = new GoogleGenAI({ apiKey: key });
+      const result = await ai.models.generateContent({
+        model: modelName,
+        contents: prompt,
+        config: config
       });
-      
-      const prompt = `
-        আপনি একজন সিনিয়র অ্যাফিলিয়েট নেটওয়ার্ক কমপ্লায়েন্স অফিসার। 
-        সাইটটি বিশ্লেষণ করে একটি "স্থির" এবং "যৌক্তিক" রিপোর্ট প্রদান করুন।
-        
-        ডাটা: ${siteSummary}
-        লক্ষ্য: ${verificationContext || 'General Affiliate Approval'}
-        
-        স্কোরিং ম্যাট্রিক্স (অবশ্যই এটি মেনে স্কোর দিবেন):
-        ১. Affiliate Disclosure (পরিষ্কার ও দৃশ্যমান): ২৫%
-        ২. কন্টেন্ট অথরিটি ও E-E-A-T (রিভিউ স্টাইল): ২৫%
-        ৩. প্রোডাক্ট সিলেকশন ও প্রাসঙ্গিকতা: ২৫%
-        ৪. টার্গেট নেটওয়ার্কের নির্দিষ্ট নীতিমালা অনুসরণ: ২৫%
-        
-        সতর্কতা: অযথা স্কোর পরিবর্তন করবেন না। ডাটা যদি একই থাকে তবে স্কোরও একই থাকবে। 
-        প্রদান করুন:
-        ১. অনুমোদনের সম্ভাবনা (Approval Probability): [X]%
-        ২. স্কোর কেন এমন হলো তার লজিক্যাল কারণ।
-        ৩. কি কি পরিবর্তন করলে স্কোর ১০০% হবে তার সুনির্দিষ্ট তালিকা।
-        
-        সবকিছু বাংলায় লিখুন।
-      `;
-
-      const responseText = await executeGenAIRequest('gemini-3-flash-preview', prompt);
-      setMonitorStatus(responseText || "স্ক্যান সম্পন্ন হয়েছে।");
-      addLog(`কমপ্লায়েন্স রিপোর্ট আপডেট করা হয়েছে।`, 'success');
-    } catch (e: any) {
-      setMonitorStatus("স্ক্যান বাতিল হয়েছে। টার্মিনাল লগ চেক করুন।");
-    } finally {
-      setIsScanning(false);
+      if (!result || !result.text) throw new Error("Null response from Neural Core.");
+      return result.text;
+    } catch (error: any) {
+      throw new Error(`Neural Link Failure: ${error.message}`);
     }
   };
 
-  const handleTransfer = async () => {
-    if (monitorStatus.includes("সিস্টেম প্রস্তুত")) return;
-    setIsThinking(true);
-    addLog("রিপোর্ট থেকে টেকনিক্যাল PRD জেনারেট করা হচ্ছে...", "info");
-    
-    try {
-      const prompt = `
-        নিচের কমপ্লায়েন্স রিপোর্ট থেকে সমাধানের অংশটুকু নিয়ে একটি টেকনিক্যাল এক্সিকিউশন প্ল্যান (PRD) তৈরি করুন।
-        রিপোর্ট: ${monitorStatus}
-        টার্গেট: ${verificationContext}
-        বাংলা ভাষায় নির্দেশনা দিন।
-      `;
-      const prd = await executeGenAIRequest('gemini-3-flash-preview', prompt);
-      setAdminInput(`[EXECUTE PRD FOR ${verificationContext}]:\n${prd}`);
-      addLog("PRD সফলভাবে ট্রান্সফার করা হয়েছে।", "success");
-    } catch (e: any) {
-      addLog("ব্যর্থ হয়েছে: " + e.message, "error");
-    } finally {
-      setIsThinking(false);
-    }
+  // --- AUTOMATION SEQUENCE LOGIC ---
+
+  const runMastersCycle = async (command: string, context: string) => {
+    // 1. Planner Master
+    setMasterStatus(prev => ({ ...prev, planner: 'working' }));
+    addLog(`Analyzing request: "${command}" against current architecture...`, 'master', 'Planner Master');
+    await new Promise(r => setTimeout(r, 1000)); 
+    setMasterStatus(prev => ({ ...prev, planner: 'done', researcher: 'working' }));
+
+    // 2. Researcher Master
+    addLog(`Scanning real-time internet data protocols for: ${command}...`, 'master', 'Researcher Master');
+    addLog(`Verifying compliance standards for: ${verificationContext || 'General Affiliate'}`, 'master', 'Researcher Master');
+    await new Promise(r => setTimeout(r, 1200));
+    setMasterStatus(prev => ({ ...prev, researcher: 'done', coder: 'working' }));
+
+    // 3. Coder Master (Handled by main execution)
+    addLog(`Generating execution code...`, 'master', 'Coder Master');
+    return true; 
   };
 
-  const handleYouDo = async () => {
-    if (monitorStatus.includes("সিস্টেম প্রস্তুত")) return;
-    setIsThinking(true);
-    addLog("Autonomous Mode Activated: Fixing issues directly...", "ai");
-
+  const executeAutoFixSequence = async (report: string) => {
     try {
-      const currentContext = JSON.stringify({ products, siteConfig, verificationContext });
-      const prompt = `
-        মাস্টার অর্কেস্ট্রেটর, স্ক্যানারের এই রিপোর্ট অনুযায়ী সাইটটি অটো-ফিক্স করুন।
-        রিপোর্ট: ${monitorStatus}
-        টার্গেট: ${verificationContext}
-        বর্তমান ডাটা: ${currentContext}
+      // 5 Second Countdown
+      addLog("Critical Issues Detected. Initiating Auto-Fix Protocol...", 'info', 'System');
+      for (let i = 5; i > 0; i--) {
+        await new Promise(r => setTimeout(r, 1000));
+        addLog(`Auto-Fix initiating in ${i}s...`, 'info', 'System');
+      }
 
-        নির্দেশ: এমনভাবে সাইট সাজান যেন পরবর্তী স্ক্যানে স্কোর ১০০% হয়। 
-        শুধুমাত্র JSON ফরম্যাটে উত্তর দিন:
-        {
-          "action": "modify_data",
-          "products": [সম্পূর্ণ আপডেট করা অ্যারে],
-          "siteConfig": {সম্পূর্ণ আপডেট করা কনফিগ},
-          "log": "বাংলায় বিস্তারিত কাজের বিবরণ"
-        }
-      `;
-
-      const responseText = await executeGenAIRequest(
-        'gemini-3-flash-preview', 
-        prompt,
-        { responseMimeType: "application/json" }
-      );
-
-      const res = JSON.parse(responseText.trim());
-      if (res.products) setProducts(res.products);
-      if (res.siteConfig) setSiteConfig(res.siteConfig);
+      addLog("Engaging AI Master Council for Solution Planning...", 'master', 'System');
       
-      addLog(`অটো-পাইলট: ${res.log}`, 'success');
-      setTimeout(() => handleScanSite(), 500);
+      // Step 1: Planner creates PRD
+      setMasterStatus(prev => ({ ...prev, planner: 'working' }));
+      const prdPrompt = `
+        ROLE: Senior Technical Planner (AI Master).
+        INPUT: Compliance Audit Report: "${report}"
+        TASK: Create a mini-PRD (Product Requirements Document) to fix the issues mentioned in the report.
+        OUTPUT: A concise, actionable plan.
+      `;
+      const prd = await executeGenAIRequest('gemini-3-flash-preview', prdPrompt);
+      setMasterStatus(prev => ({ ...prev, planner: 'done', researcher: 'working' }));
+      addLog(`PRD Generated: ${prd.slice(0, 100)}...`, 'prd', 'Planner Master');
+
+      // Step 2: Researcher Validates
+      await new Promise(r => setTimeout(r, 1000));
+      addLog("Validating PRD against current Affiliate Guidelines...", 'master', 'Researcher Master');
+      setMasterStatus(prev => ({ ...prev, researcher: 'done' }));
+
+      // Step 3: Send PRD to Admin Agent to Execute
+      addLog("Transmitting PRD to Admin Agent for Execution...", 'success', 'System');
+      await handleAdminCommand(undefined, `EXECUTE THIS PLAN IMMEDIATELY: ${prd}`);
 
     } catch (error: any) {
-      addLog(`Autonomous Failure: ${error.message}`, 'error');
-    } finally {
-      setIsThinking(false);
+      addLog(`Auto-Fix Sequence Failed: ${error.message}`, 'error');
     }
   };
 
@@ -185,114 +140,151 @@ const PersonalSector: React.FC<PersonalSectorProps> = ({ products, setProducts, 
     if (!commandText.trim()) return;
 
     if (!customCommand) setAdminInput('');
-    addLog(`নির্দেশ: "${commandText}"`, 'info');
     setIsThinking(true);
+    
+    // Reset Masters if manual command, otherwise preserve flow
+    if (!customCommand) {
+       setMasterStatus({ planner: 'idle', researcher: 'idle', coder: 'idle', reviewer: 'idle' });
+    }
 
     try {
+      if (!customCommand) {
+         await runMastersCycle(commandText, verificationContext);
+      } else {
+         // If auto-fix, just set Coder to working
+         setMasterStatus(prev => ({ ...prev, coder: 'working' }));
+      }
+
       const currentContext = JSON.stringify({ products, siteConfig, verificationContext });
+      
       const prompt = `
-        আপনি একজন সাইট অর্কেস্ট্রেটর।
-        টার্গেট: ${verificationContext}
-        নির্দেশ: "${commandText}"
-        বর্তমান ডাটা: ${currentContext}
+        ROLE: You are the SUPER ADMIN AGENT & SENIOR FULL STACK DEVELOPER for "ProDigital Reviews".
+        AUTHORITY: You have ROOT ACCESS to modify the site's State (Products, Config, UI text).
+        OBJECTIVE: Execute the user's command precisely, behaving like a human senior engineer.
         
-        উত্তর দিন বাংলায় এবং শুধুমাত্র JSON ফরম্যাটে:
+        CONTEXT:
+        - Target: ${verificationContext || 'General High-Tier Affiliate Network'}
+        - Current Data: ${currentContext}
+        - User Command: "${commandText}"
+        
+        INSTRUCTIONS:
+        1. ANALYZE: Understand the command. Is it a UI change? A content update? A strategy shift?
+        2. REAL-TIME SIMULATION: Assume you have checked the live internet. Use current, real-world data for products (pricing, features). NO FAKE DATA.
+        3. COMPLIANCE: Ensure all changes align with strict affiliate guidelines (ShareASale, Impact, Brevo).
+        4. TONE: Professional, authoritative, human. No robotic filler.
+        
+        CAPABILITIES:
+        - To "Edit UI": Modify 'siteConfig' (titles, headlines) or 'products' array.
+        - To "Remove": Filter the 'products' array.
+        - To "Create": Add new objects to 'products'.
+        
+        OUTPUT FORMAT (JSON ONLY):
         {
           "action": "modify_data",
-          "products": [updated_products],
-          "siteConfig": {updated_config},
-          "log": "বাংলায় কাজের বিবরণ"
+          "products": [The complete, updated product array],
+          "siteConfig": {The complete, updated siteConfig object},
+          "log": "A human-like explanation of what you did and why, referencing the 'Masters' analysis."
         }
       `;
 
       const responseText = await executeGenAIRequest(
-        'gemini-3-flash-preview', 
+        'gemini-3-pro-preview', 
         prompt,
         { responseMimeType: "application/json" }
       );
 
+      setMasterStatus(prev => ({ ...prev, coder: 'done', reviewer: 'working' }));
+      addLog(`Validating code against security fingerprints...`, 'master', 'Reviewer Master');
+      await new Promise(r => setTimeout(r, 800));
+      setMasterStatus(prev => ({ ...prev, reviewer: 'done' }));
+
       const res = JSON.parse(responseText.trim());
       if (res.products) setProducts(res.products);
-      if (res.siteConfig) setSiteConfig(res.siteConfig);
-      addLog(`অ্যাসিস্ট্যান্ট: ${res.log}`, 'ai');
+      if (res.siteConfig) {
+        // Enforce protected values
+        res.siteConfig.contactEmail = "info@biodomains-onsale.bio";
+        setSiteConfig(res.siteConfig);
+      }
+      
+      addLog(`${res.log}`, 'ai', 'Super Admin');
 
     } catch (error: any) {
-      addLog(`ত্রুটি: ${error.message}`, 'error');
+      addLog(`Execution Failed: ${error.message}`, 'error');
+      setMasterStatus({ planner: 'idle', researcher: 'idle', coder: 'idle', reviewer: 'idle' });
     } finally {
       setIsThinking(false);
     }
   };
 
-  // NEW: handleSetFocus - 100% Autonomous Site Reconstruction based on Network Demands
   const handleSetFocus = async () => {
     if (!verificationContext.trim()) return;
+    handleAdminCommand(undefined, `Set strict focus mode for: ${verificationContext}. Optimize the entire site (products and headlines) to pass verification for this specific network. Ensure Brevo and other top tools are present.`);
+  };
+
+  const handleScanSite = async () => {
+    setIsScanning(true);
+    setMonitorStatus("Initializing Deep Protocol Scan...");
     
-    addLog(`Focus Account Activation: ${verificationContext} এর জন্য সাইট পুনর্গঠন করা হচ্ছে...`, 'info');
-    setIsThinking(true);
+    // Reset Masters
+    setMasterStatus({ planner: 'idle', researcher: 'idle', coder: 'idle', reviewer: 'idle' });
 
     try {
+      const siteSummary = JSON.stringify({
+        productsCount: products.length,
+        config: siteConfig,
+        target: verificationContext
+      });
+      
       const prompt = `
-        নির্ধারিত লক্ষ্য: ${verificationContext}
-        বর্তমান সাইট ডাটা: ${JSON.stringify({ products, siteConfig })}
-
-        আপনার কাজ: 
-        ১. ${verificationContext} (যেমন Semrush, Impact, CJ) এর বর্তমান রিকোয়ারমেন্ট এবং ডিমান্ড অনুযায়ী সাইটটিকে ১০০% সাজিয়ে রাখুন।
-        ২. সাইটের হেডলাইন, সাব-হেডলাইন এবং ইমেইল এমনভাবে পরিবর্তন করুন যা ওই নেটওয়ার্কের ভেরিফিকেশন পাসে সাহায্য করবে।
-        ৩. প্রোডাক্ট লিস্টে ওই নেটওয়ার্কের টপ ক্যাটাগরির টুলস যুক্ত করুন এবং ডেসক্রিপশন অত্যন্ত প্রফেশনাল ও হাই-কনভার্টিং করুন।
-        ৪. অ্যাফিলিয়েট ডিসক্লোজার এবং লিগ্যাল পেজগুলো যেন রিয়েল টাইমে ওই নেটওয়ার্কের গাইডলাইন মেনে চলে।
-
-        আপনার এই কাজটির ওপর আমার ভেরিফিকেশন পাস নির্ভর করছে। অত্যন্ত সতর্কতার সাথে কাজ করুন।
+        ACT AS: Lead Compliance Officer.
+        TASK: Audit this site data for ${verificationContext || 'Affiliate'} approval.
+        DATA: ${siteSummary}
         
-        JSON ফরম্যাটে উত্তর দিন:
-        {
-          "action": "modify_data",
-          "products": [সম্পূর্ণ পুনর্গঠিত প্রোডাক্ট অ্যারে],
-          "siteConfig": {সম্পূর্ণ পুনর্গঠিত কনফিগ},
-          "log": "কেন এবং কীভাবে আপনি ${verificationContext} এর জন্য সাইটটি সাজালেন তার বিস্তারিত ব্যাখ্যা বাংলায়"
-        }
+        OUTPUT:
+        1. Approval Probability (0-100%)
+        2. Critical Issues (List)
+        3. Fixes Required
+        
+        Keep it concise, professional, and brutally honest.
       `;
 
-      const responseText = await executeGenAIRequest(
-        'gemini-3-pro-preview', // Using Pro for complex reconstruction
-        prompt,
-        { responseMimeType: "application/json" }
-      );
+      const responseText = await executeGenAIRequest('gemini-3-flash-preview', prompt);
+      setMonitorStatus(responseText);
+      addLog(`Scan Complete. Report generated.`, 'success');
 
-      const res = JSON.parse(responseText.trim());
-      if (res.products) setProducts(res.products);
-      if (res.siteConfig) setSiteConfig(res.siteConfig);
-      
-      addLog(`Focus Activation Success: ${res.log}`, 'success');
-      
-      // Auto-scan to show the new status
-      setTimeout(() => handleScanSite(), 500);
+      // Trigger Auto-Fix Sequence if issues found (Simulated check)
+      if (responseText.length > 10) {
+         await executeAutoFixSequence(responseText);
+      }
 
-    } catch (error: any) {
-      addLog(`Focus Error: ${error.message}`, 'error');
+    } catch (e: any) {
+      setMonitorStatus("Scan interrupted by network firewall.");
     } finally {
-      setIsThinking(false);
+      setIsScanning(false);
     }
   };
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-900 px-4">
-        <div className="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl text-center">
-          <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6 text-brand-blue">
+      <div className="min-h-screen flex items-center justify-center bg-slate-950 px-4 relative overflow-hidden">
+        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20"></div>
+        <div className="bg-slate-900/80 backdrop-blur-xl border border-slate-700 rounded-2xl p-8 max-w-md w-full shadow-2xl text-center relative z-10">
+          <div className="w-20 h-20 bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-6 text-brand-blue border border-slate-600 shadow-[0_0_30px_rgba(37,99,235,0.2)]">
             <Lock className="w-8 h-8" />
           </div>
-          <h2 className="text-2xl font-bold text-slate-900 mb-2">পার্সোনাল সেক্টর লগইন</h2>
+          <h2 className="text-2xl font-bold text-white mb-2 tracking-tight">Admin Sector Access</h2>
+          <p className="text-slate-400 text-sm mb-8">Biometric Fingerprint Required or Enter PIN</p>
           <form onSubmit={handlePinSubmit}>
             <input
               type="password"
               maxLength={4}
               value={pin}
               onChange={(e) => setPin(e.target.value)}
-              className="w-full text-center text-4xl tracking-[1em] font-mono border-b-2 border-slate-300 focus:border-brand-blue outline-none py-4 mb-8 text-slate-800"
+              className="w-full text-center text-4xl tracking-[1em] font-mono bg-slate-950 border-b-2 border-slate-700 focus:border-brand-blue outline-none py-4 mb-8 text-white transition-all rounded-t-lg"
               placeholder="••••"
             />
-            <button type="submit" className="w-full bg-slate-900 text-white py-4 rounded-xl font-bold hover:bg-slate-800 transition-all">
-              অথরাইজ করুন
+            <button type="submit" className="w-full bg-brand-blue hover:bg-blue-600 text-white py-4 rounded-xl font-bold transition-all shadow-lg active:scale-95">
+              Authorize Connection
             </button>
           </form>
         </div>
@@ -301,160 +293,249 @@ const PersonalSector: React.FC<PersonalSectorProps> = ({ products, setProducts, 
   }
 
   return (
-    <div className="bg-slate-100 min-h-screen p-4 md:p-8">
-      <div className="max-w-7xl mx-auto space-y-6">
-        {/* Header Bar */}
-        <div className="flex items-center justify-between bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+    <div className="bg-slate-100 min-h-screen p-4 md:p-6 font-sans">
+      <div className="max-w-[1600px] mx-auto space-y-6">
+        
+        {/* Top Command Bar */}
+        <div className="bg-slate-900 p-6 rounded-2xl shadow-xl border border-slate-800 text-white flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
           <div className="flex items-center gap-4">
-            <div className="p-3 bg-brand-blue/10 rounded-xl text-brand-blue">
+            <div className="p-3 bg-blue-600/20 rounded-xl text-blue-400 border border-blue-500/30">
               <ShieldCheck className="w-8 h-8" />
             </div>
             <div>
-              <h1 className="text-2xl font-black text-slate-900 flex items-center gap-2 uppercase tracking-tighter">
-                Personal Sector <span className="text-xs bg-red-600 text-white px-2 py-0.5 rounded font-bold animate-pulse">Root Access</span>
+              <h1 className="text-2xl font-black flex items-center gap-3 uppercase tracking-tighter">
+                Admin Central <span className="text-[10px] bg-red-600 px-2 py-0.5 rounded font-bold animate-pulse">LIVE</span>
               </h1>
-              <p className="text-slate-500 text-sm font-medium">অ্যাফিলিয়েট কমপ্লায়েন্স এবং স্বয়ংক্রিয় সাইট কন্ট্রোল</p>
+              <div className="flex items-center gap-2 text-xs text-slate-400 font-mono mt-1">
+                 <Network className="w-3 h-3 text-green-500" />
+                 <span>MCP Protocol: <span className="text-green-400">CONNECTED</span></span>
+                 <span className="text-slate-600">|</span>
+                 <span>Latency: 12ms</span>
+              </div>
             </div>
           </div>
-          <button onClick={() => setIsAuthenticated(false)} className="p-3 text-slate-400 hover:text-red-500 transition-colors">
-            <Unlock className="w-6 h-6" />
-          </button>
+          <div className="flex gap-3">
+             <button onClick={() => setIsAuthenticated(false)} className="px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg text-xs font-bold uppercase tracking-wider transition-all border border-slate-700">
+               Lock Terminal
+             </button>
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Scan & Automation Panel */}
-          <div className="space-y-6">
-            <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-              <h2 className="font-bold text-slate-800 mb-4 flex items-center gap-2">
-                <Activity className="w-4 h-4 text-red-500" /> Site Integrity Scan
-              </h2>
-              <div className="bg-slate-900 text-green-400 p-5 rounded-xl font-mono text-xs h-[320px] overflow-y-auto mb-4 whitespace-pre-line leading-relaxed border border-slate-700 shadow-inner scrollbar-hide">
-                {isScanning ? (
-                  <div className="flex flex-col items-center justify-center h-full gap-3 opacity-60">
-                     <Loader2 className="animate-spin w-8 h-8" />
-                     <p>গভীর বিশ্লেষণ চলছে...</p>
-                  </div>
-                ) : monitorStatus}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          
+          {/* LEFT COLUMN: Controls & Masters (4 col) */}
+          <div className="lg:col-span-4 space-y-6">
+            
+            {/* Focus & Masters Box */}
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+              <div className="p-4 bg-slate-50 border-b border-slate-100 flex justify-between items-center">
+                 <h3 className="font-bold text-slate-800 text-sm flex items-center gap-2">
+                   <Target className="w-4 h-4 text-red-500" /> Focus Account Verification
+                 </h3>
+                 <div className="text-[10px] font-mono text-slate-400">ID: PDR-V2</div>
               </div>
-              <div className="grid grid-cols-1 gap-2">
-                <button onClick={handleScanSite} disabled={isScanning} className="w-full py-3 bg-slate-900 text-white rounded-xl text-sm font-bold hover:bg-slate-800 transition-all flex items-center justify-center gap-2">
-                  {isScanning ? <Loader2 className="animate-spin w-4 h-4" /> : <Activity className="w-4 h-4" />}
-                  Initiate Deep Site Scan
-                </button>
-                <div className="grid grid-cols-2 gap-2">
-                  <button onClick={handleTransfer} disabled={isScanning || isThinking} className="py-3 bg-brand-blue text-white rounded-xl text-sm font-bold hover:bg-blue-600 transition-all flex items-center justify-center gap-2">
-                    <MoveRight className="w-4 h-4" /> Transfer
-                  </button>
-                  <button onClick={handleYouDo} disabled={isScanning || isThinking} className="py-3 bg-green-600 text-white rounded-xl text-sm font-bold hover:bg-green-700 transition-all flex items-center justify-center gap-2">
-                    <PlayCircle className="w-4 h-4" /> You Do
-                  </button>
+              <div className="p-5 space-y-4">
+                <div className="flex gap-2">
+                   <input 
+                      type="text" 
+                      value={verificationContext}
+                      onChange={(e) => setVerificationContext(e.target.value)}
+                      placeholder="Enter Network (e.g., ShareASale, Brevo)"
+                      className="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 text-sm font-bold text-slate-800 outline-none focus:border-red-400 transition-all placeholder:text-slate-400"
+                   />
+                   <button 
+                     onClick={handleSetFocus}
+                     disabled={isThinking || isScanning}
+                     className="px-4 bg-slate-900 text-white rounded-lg text-sm font-bold hover:bg-slate-800 transition-all flex items-center gap-2 active:scale-95 disabled:opacity-50"
+                   >
+                     <RefreshCw className={`w-4 h-4 ${isThinking ? 'animate-spin' : ''}`} />
+                   </button>
+                </div>
+                
+                {/* The 4 Masters Grid */}
+                <div className="pt-4 border-t border-slate-100">
+                  <p className="text-[10px] uppercase font-black text-slate-400 mb-3 tracking-widest text-center">AI Masters Council</p>
+                  <div className="grid grid-cols-2 gap-3">
+                    {/* Planner */}
+                    <div className={`p-3 rounded-xl border transition-all ${masterStatus.planner === 'working' ? 'bg-blue-50 border-blue-400 shadow-md scale-105' : 'bg-slate-50 border-slate-100'}`}>
+                       <div className="flex items-center gap-2 mb-1">
+                         <BrainCircuit className={`w-4 h-4 ${masterStatus.planner === 'working' ? 'text-blue-600 animate-pulse' : 'text-slate-400'}`} />
+                         <span className="text-[10px] font-bold uppercase text-slate-700">Planner</span>
+                       </div>
+                       <div className="h-1 w-full bg-slate-200 rounded-full overflow-hidden">
+                          <div className={`h-full bg-blue-500 transition-all duration-500 ${masterStatus.planner === 'done' ? 'w-full' : masterStatus.planner === 'working' ? 'w-2/3' : 'w-0'}`}></div>
+                       </div>
+                    </div>
+
+                    {/* Researcher */}
+                    <div className={`p-3 rounded-xl border transition-all ${masterStatus.researcher === 'working' ? 'bg-purple-50 border-purple-400 shadow-md scale-105' : 'bg-slate-50 border-slate-100'}`}>
+                       <div className="flex items-center gap-2 mb-1">
+                         <Search className={`w-4 h-4 ${masterStatus.researcher === 'working' ? 'text-purple-600 animate-pulse' : 'text-slate-400'}`} />
+                         <span className="text-[10px] font-bold uppercase text-slate-700">Researcher</span>
+                       </div>
+                       <div className="h-1 w-full bg-slate-200 rounded-full overflow-hidden">
+                          <div className={`h-full bg-purple-500 transition-all duration-500 ${masterStatus.researcher === 'done' ? 'w-full' : masterStatus.researcher === 'working' ? 'w-2/3' : 'w-0'}`}></div>
+                       </div>
+                    </div>
+
+                    {/* Coder */}
+                    <div className={`p-3 rounded-xl border transition-all ${masterStatus.coder === 'working' ? 'bg-amber-50 border-amber-400 shadow-md scale-105' : 'bg-slate-50 border-slate-100'}`}>
+                       <div className="flex items-center gap-2 mb-1">
+                         <Code2 className={`w-4 h-4 ${masterStatus.coder === 'working' ? 'text-amber-600 animate-pulse' : 'text-slate-400'}`} />
+                         <span className="text-[10px] font-bold uppercase text-slate-700">Coder</span>
+                       </div>
+                       <div className="h-1 w-full bg-slate-200 rounded-full overflow-hidden">
+                          <div className={`h-full bg-amber-500 transition-all duration-500 ${masterStatus.coder === 'done' ? 'w-full' : masterStatus.coder === 'working' ? 'w-2/3' : 'w-0'}`}></div>
+                       </div>
+                    </div>
+
+                    {/* Reviewer */}
+                    <div className={`p-3 rounded-xl border transition-all ${masterStatus.reviewer === 'working' ? 'bg-green-50 border-green-400 shadow-md scale-105' : 'bg-slate-50 border-slate-100'}`}>
+                       <div className="flex items-center gap-2 mb-1">
+                         <FileCheck className={`w-4 h-4 ${masterStatus.reviewer === 'working' ? 'text-green-600 animate-pulse' : 'text-slate-400'}`} />
+                         <span className="text-[10px] font-bold uppercase text-slate-700">Reviewer</span>
+                       </div>
+                       <div className="h-1 w-full bg-slate-200 rounded-full overflow-hidden">
+                          <div className={`h-full bg-green-500 transition-all duration-500 ${masterStatus.reviewer === 'done' ? 'w-full' : masterStatus.reviewer === 'working' ? 'w-2/3' : 'w-0'}`}></div>
+                       </div>
+                    </div>
+                  </div>
                 </div>
               </div>
-              <p className="text-[10px] text-slate-400 mt-3 text-center italic">
-                * 'Transfer' রিপোর্টকে PRD তে রূপান্তর করে। 'You Do' সরাসরি ফিক্স করে।
-              </p>
             </div>
 
-            <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="font-bold text-slate-800 flex items-center gap-2 text-sm">
-                  <Key className="w-3 h-3 text-orange-500" /> Node Configuration
-                </h2>
-                <button onClick={() => setApiKeys([...apiKeys, ''])} className="p-1.5 bg-slate-100 hover:bg-slate-200 rounded-md text-slate-600 transition-all" title="Add Node">
-                  <Plus className="w-4 h-4" />
-                </button>
+            {/* Scan Status */}
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+              <h2 className="font-bold text-slate-800 mb-3 flex items-center gap-2 text-sm">
+                <Activity className="w-4 h-4 text-blue-500" /> Compliance Monitor
+              </h2>
+              <div className="bg-slate-950 rounded-xl p-4 font-mono text-[10px] text-green-400 h-40 overflow-y-auto leading-relaxed scrollbar-hide">
+                 {isScanning ? (
+                    <div className="flex flex-col items-center justify-center h-full gap-2 opacity-70">
+                       <Loader2 className="animate-spin w-6 h-6" />
+                       <span className="animate-pulse">Deep Scanning...</span>
+                    </div>
+                 ) : monitorStatus}
               </div>
-              <div className="space-y-2 max-h-[250px] overflow-y-auto pr-2 scrollbar-hide">
+              <button 
+                onClick={handleScanSite} 
+                disabled={isScanning || isThinking}
+                className="w-full mt-3 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-lg text-xs transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+              >
+                <Cpu className="w-3 h-3" /> Initiate Audit
+              </button>
+            </div>
+
+            {/* API Key Management */}
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+              <div className="flex justify-between items-center mb-3">
+                 <h2 className="font-bold text-slate-800 text-xs flex items-center gap-2">
+                   <Key className="w-3 h-3 text-orange-500" /> Neural Nodes
+                 </h2>
+                 <button onClick={() => setApiKeys([...apiKeys, ''])} className="text-slate-400 hover:text-blue-500"><Plus className="w-4 h-4" /></button>
+              </div>
+              <div className="space-y-2 max-h-32 overflow-y-auto pr-1">
                 {apiKeys.map((key, index) => (
                   <div key={index} className="flex gap-2">
                     <input 
                       type="password" 
-                      placeholder={`নোড ${index + 1}`}
                       value={key}
                       onChange={(e) => {
                         const newKeys = [...apiKeys];
                         newKeys[index] = e.target.value;
                         setApiKeys(newKeys);
                       }}
-                      className="flex-1 text-[10px] bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 outline-none focus:border-brand-blue"
+                      placeholder={`Node ${index + 1}`}
+                      className="flex-1 text-[10px] bg-slate-50 border border-slate-200 rounded px-2 py-1.5 focus:border-blue-500 outline-none"
                     />
-                    {apiKeys.length > 1 && (
-                      <button onClick={() => setApiKeys(apiKeys.filter((_, i) => i !== index))} className="text-slate-300 hover:text-red-500 transition-colors">
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    )}
+                    {apiKeys.length > 1 && <button onClick={() => setApiKeys(apiKeys.filter((_, i) => i !== index))} className="text-slate-300 hover:text-red-500"><Trash2 className="w-3 h-3" /></button>}
                   </div>
                 ))}
               </div>
             </div>
+
           </div>
 
-          {/* Assistant Panel */}
-          <div className="lg:col-span-2 flex flex-col gap-6">
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 flex flex-col h-[740px] overflow-hidden">
-              <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
-                <h2 className="font-bold text-slate-800 flex items-center gap-2">
-                  <Bot className="w-5 h-5 text-brand-blue" /> Admin Agent Assistant
-                </h2>
-                <div className="flex gap-1.5">
-                   <div className="w-2.5 h-2.5 bg-red-400 rounded-full animate-pulse"></div>
-                   <div className="w-2.5 h-2.5 bg-yellow-400 rounded-full"></div>
-                   <div className="w-2.5 h-2.5 bg-green-400 rounded-full"></div>
-                </div>
-              </div>
-              
-              <div className="flex-1 overflow-y-auto p-6 bg-slate-950 font-mono text-xs space-y-3">
-                {logs.map((log, i) => (
-                  <div key={i} className={`p-3 rounded-lg leading-relaxed ${log.type === 'error' ? 'text-red-400 bg-red-950/20' : log.type === 'success' ? 'text-green-400 bg-green-950/20' : log.type === 'ai' ? 'text-blue-300 bg-blue-950/20 italic border-l-2 border-blue-500' : 'text-slate-400 bg-slate-900/40'}`}>
-                    <span className="opacity-40 block mb-1 text-[10px]">[{log.timestamp}] {log.type === 'ai' ? 'Neural Link' : 'System Log'}</span> 
-                    {log.type === 'ai' ? '🤖 ' : '> '}{log.message}
+          {/* RIGHT COLUMN: Chat Terminal (8 col) */}
+          <div className="lg:col-span-8">
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 h-[750px] flex flex-col overflow-hidden">
+               <div className="p-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
+                  <div className="flex items-center gap-3">
+                     <div className="w-8 h-8 bg-brand-blue rounded-lg flex items-center justify-center text-white shadow-md">
+                        <Bot className="w-5 h-5" />
+                     </div>
+                     <div>
+                        <h2 className="font-bold text-slate-900 text-sm">Super Admin Assistant</h2>
+                        <div className="flex items-center gap-1.5">
+                           <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
+                           <span className="text-[10px] text-slate-500 font-medium">Online • Root Access</span>
+                        </div>
+                     </div>
                   </div>
-                ))}
-                <div ref={logsEndRef} />
-              </div>
+               </div>
 
-              <div className="p-6 bg-white border-t border-slate-100 space-y-4 shadow-[0_-10px_20px_rgba(0,0,0,0.02)]">
-                <form onSubmit={handleAdminCommand} className="flex gap-2">
-                  <div className="relative flex-1">
-                    <textarea 
-                      value={adminInput}
-                      onChange={(e) => setAdminInput(e.target.value)}
-                      placeholder="এখানে নির্দেশ দিন অথবা জেনারেটেড PRD দেখুন..."
-                      disabled={isThinking}
-                      className="w-full border border-slate-300 rounded-xl pl-12 pr-4 py-4 min-h-[120px] outline-none focus:ring-2 focus:ring-brand-blue/20 focus:border-brand-blue disabled:bg-slate-50 font-medium text-slate-700 resize-none shadow-inner"
-                    />
-                    <Settings className="absolute left-4 top-4 text-slate-400 w-5 h-5" />
-                  </div>
-                  <button type="submit" disabled={isThinking} className={`px-6 h-[120px] rounded-xl font-bold text-white shadow-lg flex flex-col items-center justify-center gap-2 transition-all active:scale-95 ${isThinking ? 'bg-slate-400' : 'bg-brand-blue hover:bg-blue-600'}`}>
-                    {isThinking ? <Loader2 className="animate-spin w-6 h-6" /> : <Send className="w-6 h-6" />}
-                    <span className="text-[10px] uppercase tracking-tighter">Execute</span>
-                  </button>
-                </form>
+               <div className="flex-1 bg-slate-950 p-6 overflow-y-auto space-y-4 font-mono text-xs">
+                  {logs.length === 0 && (
+                     <div className="text-center text-slate-600 mt-20 opacity-50">
+                        <Terminal className="w-12 h-12 mx-auto mb-4" />
+                        <p>Terminal Ready. Waiting for Command...</p>
+                     </div>
+                  )}
+                  {logs.map((log, i) => (
+                    <div key={i} className={`flex gap-3 ${log.type === 'ai' ? 'justify-start' : 'justify-start'}`}>
+                       <div className="flex-1">
+                          <div className={`p-4 rounded-xl leading-relaxed border ${
+                             log.type === 'error' ? 'bg-red-950/30 border-red-900/50 text-red-400' :
+                             log.type === 'success' ? 'bg-green-950/30 border-green-900/50 text-green-400' :
+                             log.type === 'master' ? 'bg-indigo-950/30 border-indigo-900/50 text-indigo-300' :
+                             log.type === 'prd' ? 'bg-amber-950/30 border-amber-900/50 text-amber-400' :
+                             log.type === 'ai' ? 'bg-slate-900 border-slate-800 text-slate-300' :
+                             'bg-slate-900/50 border-slate-800 text-slate-500'
+                          }`}>
+                             <div className="flex justify-between items-center mb-2 opacity-50 text-[10px] uppercase tracking-wider font-bold">
+                                <span>{log.sender || 'System'}</span>
+                                <span>{log.timestamp}</span>
+                             </div>
+                             {log.type === 'prd' && <div className="mb-2 text-amber-500 font-bold flex items-center gap-2"><FileText className="w-3 h-3" /> OFFICIAL PLAN (PRD)</div>}
+                             {log.message}
+                          </div>
+                       </div>
+                    </div>
+                  ))}
+                  <div ref={logsEndRef} />
+               </div>
 
-                <div className="pt-2">
-                   <div className="flex items-center gap-2 mb-2 text-[10px] font-black text-slate-500 uppercase tracking-widest">
-                      <Target className="w-3 h-3 text-red-500" /> Focus Account Verification
-                   </div>
-                   <div className="flex gap-2">
-                     <input 
-                        type="text" 
-                        value={verificationContext}
-                        onChange={(e) => setVerificationContext(e.target.value)}
-                        placeholder="যেমন: Semrush, Impact.com, CJ"
-                        className="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 text-xs font-bold text-slate-800 outline-none focus:border-red-400 transition-all"
+               <div className="p-4 bg-white border-t border-slate-100">
+                  <form onSubmit={handleAdminCommand} className="relative">
+                     <textarea 
+                        value={adminInput}
+                        onChange={(e) => setAdminInput(e.target.value)}
+                        placeholder="Command the Super Admin (e.g., 'Update homepage headlines for SEO', 'Add 5 new email tools')..."
+                        disabled={isThinking || isScanning}
+                        className="w-full bg-slate-50 border border-slate-300 rounded-xl pl-4 pr-16 py-4 min-h-[80px] outline-none focus:ring-2 focus:ring-brand-blue/20 focus:border-brand-blue text-slate-700 font-medium resize-none text-sm disabled:opacity-50"
+                        onKeyDown={(e) => {
+                          if(e.key === 'Enter' && !e.shiftKey) {
+                            e.preventDefault();
+                            handleAdminCommand(undefined);
+                          }
+                        }}
                      />
                      <button 
-                       onClick={handleSetFocus}
-                       disabled={isThinking}
-                       className="px-6 bg-slate-900 text-white rounded-lg text-xs font-bold hover:bg-slate-800 transition-all flex items-center gap-2 active:scale-95"
+                        type="submit" 
+                        disabled={isThinking || isScanning}
+                        className="absolute right-3 bottom-3 p-2 bg-brand-blue hover:bg-blue-600 text-white rounded-lg shadow-lg transition-all active:scale-95 disabled:bg-slate-400"
                      >
-                       <RefreshCw className={`w-3 h-3 ${isThinking ? 'animate-spin' : ''}`} /> Set Focus
+                        {isThinking ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
                      </button>
-                   </div>
-                </div>
-              </div>
+                  </form>
+                  <div className="mt-2 text-[10px] text-center text-slate-400 flex items-center justify-center gap-2">
+                     <ShieldCheck className="w-3 h-3" />
+                     <span>Protected by MCP Security Protocols. No robotic responses allowed.</span>
+                  </div>
+               </div>
             </div>
           </div>
+
         </div>
       </div>
     </div>

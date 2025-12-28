@@ -11,7 +11,7 @@ import PersonalSector from './components/PersonalSector';
 import CheckoutModal from './components/CheckoutModal';
 import { products as initialProducts } from './services/data';
 import { Product, SiteConfig } from './types';
-import { Crown, Check, Zap } from 'lucide-react';
+import { Crown, Check, Zap, Target, TrendingUp, ShieldCheck } from 'lucide-react';
 
 const ScrollToTop = () => {
   const { pathname } = useLocation();
@@ -48,6 +48,39 @@ const HomePage: React.FC<{ products: Product[]; config: SiteConfig }> = ({ produ
         </div>
       </section>
 
+      {/* Why Go Premium Section - Value Proposition */}
+      <section className="py-20 bg-white border-t border-slate-100">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl font-bold text-slate-900 mb-4">Why Professional Affiliate Marketers Choose ProDigital</h2>
+            <p className="text-slate-500">আমরা শুধু রিভিউ দেই না, আমরা আপনার সফলতার রোডম্যাপ তৈরি করি।</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+            <div className="text-center space-y-4">
+              <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center mx-auto text-brand-blue">
+                <Target className="w-8 h-8" />
+              </div>
+              <h3 className="text-xl font-bold text-slate-900">Expired Domains List</h3>
+              <p className="text-slate-600 text-sm leading-relaxed">প্রতি সপ্তাহে হাই-অথরিটি (DA 30+) এক্সপায়ারড ডোমেইন এর লিস্ট পান যা দিয়ে সহজেই অ্যাফিলিয়েট সাইট র‍্যাঙ্ক করা সম্ভব।</p>
+            </div>
+            <div className="text-center space-y-4">
+              <div className="w-16 h-16 bg-green-50 rounded-2xl flex items-center justify-center mx-auto text-green-600">
+                <TrendingUp className="w-8 h-8" />
+              </div>
+              <h3 className="text-xl font-bold text-slate-900">SEO Volatility Alerts</h3>
+              <p className="text-slate-600 text-sm leading-relaxed">গুগল অ্যালগরিদম আপডেট আসার আগেই সতর্কবাণী এবং আপনার সাইটকে পেনাল্টি থেকে বাঁচানোর সিক্রেট টিপস।</p>
+            </div>
+            <div className="text-center space-y-4">
+              <div className="w-16 h-16 bg-purple-50 rounded-2xl flex items-center justify-center mx-auto text-purple-600">
+                <ShieldCheck className="w-8 h-8" />
+              </div>
+              <h3 className="text-xl font-bold text-slate-900">Affiliate Approval Guarantee</h3>
+              <p className="text-slate-600 text-sm leading-relaxed">Semrush বা Impact-এর মতো বড় নেটওয়ার্ক থেকে রিজেকশন খেয়েছেন? আমাদের প্রিমিয়াম গাইডলাইন ফলো করলে ১০০% অ্যাপ্রুভাল গ্যারান্টি।</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Pricing / Premium Section */}
       <section className="bg-slate-900 py-24 px-4 overflow-hidden relative">
         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500"></div>
@@ -56,7 +89,7 @@ const HomePage: React.FC<{ products: Product[]; config: SiteConfig }> = ({ produ
             <h2 className="text-4xl font-bold text-white mb-4 flex items-center justify-center gap-3">
               <Crown className="text-yellow-400 w-10 h-10" /> Upgrade to Premium
             </h2>
-            <p className="text-slate-400 text-lg">Get exclusive insights, early deals, and expert software consultation.</p>
+            <p className="text-slate-400 text-lg">অ্যাফিলিয়েট মার্কেটিং এ সফল হতে আজই জয়েন করুন।</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
@@ -74,11 +107,16 @@ const HomePage: React.FC<{ products: Product[]; config: SiteConfig }> = ({ produ
             </div>
 
             <div className="bg-white p-8 rounded-2xl shadow-2xl transform scale-105 border-2 border-brand-blue relative">
-              <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-brand-blue text-white px-4 py-1 rounded-full text-xs font-bold uppercase tracking-widest">Most Popular</div>
+              <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-brand-blue text-white px-4 py-1 rounded-full text-xs font-bold uppercase tracking-widest">Recommended</div>
               <h3 className="text-xl font-bold text-slate-900 mb-2">Pro Member</h3>
               <div className="text-3xl font-bold text-slate-900 mb-6">৳৫৯৯<span className="text-sm font-normal text-slate-500">/month</span></div>
               <ul className="space-y-4 mb-8">
-                {['Detailed Pricing Data', 'Early Access to Deals', 'Premium Discord Community', 'Ad-free Experience'].map((f) => (
+                {[
+                  'Weekly High-DA Expired Domains', 
+                  'Private "Approval-Only" Templates', 
+                  'Discord Mastermind Access', 
+                  'Direct Expert Software Support'
+                ].map((f) => (
                   <li key={f} className="flex items-center gap-2 text-slate-700 text-sm">
                     <Check className="w-4 h-4 text-brand-blue" /> {f}
                   </li>
@@ -88,7 +126,7 @@ const HomePage: React.FC<{ products: Product[]; config: SiteConfig }> = ({ produ
                 onClick={() => setCheckoutData({ isOpen: true, plan: 'Pro Member', price: '৳৫৯৯/mo' })}
                 className="w-full py-3 rounded-xl bg-brand-blue text-white font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-200"
               >
-                Join Pro Now
+                Get Premium Access
               </button>
             </div>
 
@@ -96,7 +134,7 @@ const HomePage: React.FC<{ products: Product[]; config: SiteConfig }> = ({ produ
               <h3 className="text-xl font-bold text-white mb-2">Elite Business</h3>
               <div className="text-3xl font-bold text-white mb-6">৳১,৯৯৯<span className="text-sm font-normal text-slate-500">/year</span></div>
               <ul className="space-y-4 mb-8">
-                {['1-on-1 Strategy Call', 'Custom Tool Audits', 'API Access', 'All Pro Features'].map((f) => (
+                {['1-on-1 Strategy Call', 'Complete Site Audit (Done-for-you)', 'Custom Verification Logic', 'All Pro Features'].map((f) => (
                   <li key={f} className="flex items-center gap-2 text-slate-400 text-sm">
                     <Check className="w-4 h-4 text-blue-400" /> {f}
                   </li>
@@ -106,12 +144,12 @@ const HomePage: React.FC<{ products: Product[]; config: SiteConfig }> = ({ produ
                 onClick={() => setCheckoutData({ isOpen: true, plan: 'Elite Business', price: '৳১,৯৯৯/yr' })}
                 className="w-full py-3 rounded-xl border border-slate-600 text-white font-semibold hover:bg-slate-700 transition-colors"
               >
-                Get Elite Access
+                Go Elite (Best Value)
               </button>
             </div>
           </div>
           
-          <div className="mt-16 flex justify-center items-center gap-8 opacity-50 grayscale contrast-125">
+          <div className="mt-16 flex justify-center items-center gap-8 opacity-40 grayscale contrast-125">
              <div className="text-white font-bold text-xl italic">bKash</div>
              <div className="text-white font-bold text-xl italic">Nagad</div>
              <div className="text-white font-bold text-xl italic">Rocket</div>
@@ -142,7 +180,7 @@ const App: React.FC = () => {
       siteTitle: "ProDigital Reviews",
       heroHeadline: "Build Your Stack with Confidence.",
       heroSubheadline: "আমরা হাজার হাজার ডিজিটাল টুলস পরীক্ষা করে আপনার জন্য সেরাটি খুঁজে বের করি।",
-      contactEmail: "contact@prodigitalreviews.com",
+      contactEmail: "info@biodomains-onsale.bio",
       isVerificationMode: false
     };
   });
